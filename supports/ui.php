@@ -93,6 +93,16 @@ class term_ui
         if (!taxonomy_supports($this->taxonomy, 'editor')) {
             add_action($this->taxonomy."_edit_form_fields", [$this, 'description_field_remove']);
         }
+        add_action('admin_footer', function () {
+            ?>
+  <a href="<?php echo add_query_arg(['new'=>'','taxonomy'=>$this->taxonomy], 'edit-tags.php') ?>" class="page-title-action"><?php echo _x('Add New', 'post') ?></a>
+  <script>
+    jQuery(document).ready( function($) {
+      jQuery('h1').addClass('wp-heading-inline');
+      jQuery('.page-title-action').detach().appendTo('h1').show();
+    });
+  </script><?php
+});
     }
 
     public function term_new()

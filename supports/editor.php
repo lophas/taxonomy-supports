@@ -103,16 +103,6 @@ class term_editor_support
             if (wp_is_mobile()) {
                 wp_enqueue_script('jquery-touch-punch');
             }
-            add_action('admin_footer', function () {
-                ?>
-			<a href="<?php echo add_query_arg(['new'=>'','taxonomy'=>$this->taxonomy], 'edit-tags.php') ?>" class="page-title-action"><?php echo _x('Add New', 'post') ?></a>
-			<script>
-				jQuery(document).ready( function($) {
-					jQuery('h1').addClass('wp-heading-inline');
-					jQuery('.page-title-action').detach().appendTo('h1').show();
-				});
-			</script><?php
-		});
         //delete_user_option( get_current_user_id(), "meta-box-order_edit-".$this->taxonomy, true );
     }
     public function admin_head()
