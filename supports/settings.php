@@ -26,10 +26,13 @@ class taxonomy_supports_settings
       $overrides = $this->get_option('overrides');
 //echo '<pre>'.var_export($overrides,true).'</pre>';//die();
       if(empty($overrides)) return;
+      $existing_features = apply_filters('taxonomy_supports_options',[]);
       foreach($overrides as $taxonomy=>$features) {
         foreach($features as $feature=>$value) {
-          if($value) add_taxonomy_support($taxonomy, $feature);
-          else remove_taxonomy_support($taxonomy, $feature);
+          if(in_array($feature, $existing_features)) {
+            if($value) add_taxonomy_support($taxonomy, $feature);
+            else remove_taxonomy_support($taxonomy, $feature);
+          }
         }
       }
     }
@@ -63,12 +66,12 @@ class taxonomy_supports_settings
 //        do_settings_sections(self::ADMINSLUG);
         $name =self::OPTIONS.'[overrides]';
         global $_wp_taxonomy_features;
-        $features = apply_filters('taxonomy_supports_options',[]);
+        $existing_features = apply_filters('taxonomy_supports_options',[]);
         foreach(array_keys($_wp_taxonomy_features) as $slug) {
           $taxonomy = get_taxonomy($slug);
 //          echo '<pre>'.var_export($taxonomy,true).'</pre>';
           ?><p><b><?php echo __($taxonomy->label) ?></b> (<?php echo __($taxonomy->name) ?>): &nbsp;<?php
-          foreach($features as $feature) {
+          foreach($existing_features as $feature) {
             ?><input class="checkbox" type="checkbox"<?php checked($_wp_taxonomy_features[$slug][$feature]) ?> name="<?php echo $name ?>[<?php echo $slug ?>][<?php echo $feature ?>]" value="true" /><?php echo $feature ?>&nbsp;<?php
           }
           ?></p><?php
