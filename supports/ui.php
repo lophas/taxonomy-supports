@@ -65,6 +65,9 @@ class term_ui
 				float:none;
 				width:100%;
 			}
+      <?php if (!taxonomy_supports($this->taxonomy, 'editor')) : ?>
+      .column-description{display:none;}
+      <?php endif ?>
 			</style><?php
     }
     public function admin_footer_edit_tags()
