@@ -314,7 +314,7 @@ $metadata = $this->has_meta($term->term_id);
                 }
                 //			if(!empty($value['key']) && !empty($value['value'])) update_metadata_by_mid( 'term', $key, $value['value'], $value['key'] );
                 if (!empty($value['key'])) {
-                    update_metadata_by_mid('term', $key, $value['value'], $value['key']);
+                    update_metadata_by_mid('term', $key, wp_unslash($value['value']), $value['key']);
                 } else {
                     delete_metadata_by_mid('term', $key);
                 }
@@ -432,7 +432,7 @@ $metadata = $this->has_meta($term->term_id);
         $metakeyinput = isset($_POST['metakeyinput']) ? wp_unslash(trim($_POST['metakeyinput'])) : '';
         $metavalue = isset($_POST['metavalue']) ? $_POST['metavalue'] : '';
         if (is_string($metavalue)) {
-            $metavalue = trim($metavalue);
+            $metavalue = trim(wp_unslash($metavalue));
         }
 
         if (('0' === $metavalue || ! empty($metavalue)) && ((('#NONE#' != $metakeyselect) && !empty($metakeyselect)) || !empty($metakeyinput))) {
