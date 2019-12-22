@@ -114,7 +114,7 @@ class term_ui
         $taxonomy = $tax->name;
 
         if (! in_array($taxonomy, get_taxonomies(array( 'show_ui' => true ))) ||
-     ! current_user_can('manage_categories')
+     ! current_user_can($tax->cap->manage_terms)
 ) {
             wp_die(
         '<h1>' . __('You need a higher level of permission.') . '</h1>' .
