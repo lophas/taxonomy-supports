@@ -68,6 +68,7 @@ class taxonomy_supports_settings
         global $_wp_taxonomy_features;
         $existing_features = apply_filters('taxonomy_supports_options',[]);
         foreach(array_keys($_wp_taxonomy_features) as $slug) {
+          if(!taxonomy_exists($slug)) continue;
           $taxonomy = get_taxonomy($slug);
 //          echo '<pre>'.var_export($taxonomy,true).'</pre>';
           ?><p><b><?php echo __($taxonomy->label) ?></b> (<?php echo __($taxonomy->name) ?>): &nbsp;<?php
