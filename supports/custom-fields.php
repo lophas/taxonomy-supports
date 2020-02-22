@@ -3,7 +3,7 @@ class term_custom_fields_support
 {
     private static $_instance;
 		private $taxonomy;
-    public function instance()
+    public static function instance()
     {
         if (!isset(self::$_instance)) {
             self::$_instance =  new self;

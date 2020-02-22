@@ -2,7 +2,7 @@
 class term_ui
 {
     private static $_instance;
-    public function instance()
+    public static function instance()
     {
         if (!isset(self::$_instance)) {
             self::$_instance =  new self;

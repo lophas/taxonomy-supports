@@ -2,7 +2,7 @@
 /*
     Plugin Name: Taxonomy Supports
     Description: Adds taxonomy supports for date, author, thumbnail, editor and meta_boxes
-    Version: 2.1
+    Version: 2.2
     Plugin URI: https://github.com/lophas/taxonomy-supports
     GitHub Plugin URI: https://github.com/lophas/taxonomy-supports
     Author: Attila Seres
@@ -27,7 +27,7 @@ if (!class_exists('taxonomy_supports')) :
 class taxonomy_supports
 {
     private static $_instance;
-    public function instance()
+    public static function instance()
     {
         if (!isset(self::$_instance)) {
             self::$_instance =  new self;

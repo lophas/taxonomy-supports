@@ -5,7 +5,7 @@ class taxonomy_supports_settings
   const ADMINSLUG =__CLASS__;
   private $taxonomies;
     private static $_instance;
-    public function instance()
+    public static function instance()
     {
         if (!isset(self::$_instance)) {
             self::$_instance =  new self;
