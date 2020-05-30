@@ -217,16 +217,15 @@ class term_editor_support
                     if (!is_callable($the_['function'])) {
                         continue;
                     } //wtf not callable
-                    if (is_a($the_['function'][0], __CLASS__)) {
-                        continue;
-                    } //do not mess with own hooks
-                    unset($wp_filter[$tag]->callbacks[$priority][$id]); //remove pseudo metabox callback
-                    if (!is_array($the_['function'])) {
-                        $class_or_function = is_object($the_['function']) ? get_class($the_['function']) : $the_['function'];
+                    if (is_array($the_['function'])) {
+                      if (is_a($the_['function'][0], __CLASS__)) continue; //do not mess with own hooks
+                      $class_or_function = is_object($the_['function'][0]) ? get_class($the_['function'][0]) : $the_['function'][0];
+                    } elseif( $the_['function'] instanceof Closure) {
+                      $class_or_function = 'Closure';
+                    } else {
+                      $class_or_function = is_object($the_['function']) ? get_class($the_['function']) : $the_['function'];
                     } //guess a human readable title
-                    else {
-                        $class_or_function = is_object($the_['function'][0]) ? get_class($the_['function'][0]) : $the_['function'][0];
-                    }
+                    unset($wp_filter[$tag]->callbacks[$priority][$id]); //remove pseudo metabox callback
                     $box_id = $class_or_function.(($this->psudeocount[$class_or_function]++) ? '-'.$this->psudeocount[$class_or_function] : '');
                     $args = array(
                         'id' => $box_id,
