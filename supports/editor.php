@@ -27,6 +27,12 @@ class term_editor_support
         });
         add_action('load-edit-tags.php', [$this, 'load_edit_tags'], PHP_INT_MAX);
         add_action('load-term.php', [$this, 'load_term']);
+        add_action('admin_init', function(){
+          if ( current_user_can( 'unfiltered_html' ) ) {
+            remove_filter( 'pre_term_description', 'wp_filter_kses' );
+            remove_filter( 'term_description', 'wp_kses_data' );
+          }
+        });
     }
 
     public function wp_admin()
