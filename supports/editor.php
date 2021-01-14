@@ -14,7 +14,7 @@ class term_editor_support
     private $psudeocount = [];
     public function __construct()
     {
-        add_action('wp_head', [$this, 'wp_admin'], 1);
+        add_action('wp_head', [$this, 'wp_head'], 1);
         add_filter('taxonomy_supports_defaults', function ($supports, $taxonomy, $taxonomy_object) {
             if ($taxonomy_object['hierarchical']) {
                 $supports[] = 'editor';
@@ -35,7 +35,7 @@ class term_editor_support
         });
     }
 
-    public function wp_admin()
+    public function wp_head()
     {
         if (!$object = get_queried_object()) {
             return;
@@ -46,6 +46,7 @@ class term_editor_support
         if (!taxonomy_supports($taxonomy, 'editor')) {
             return;
         }
+        add_filter( 'term_description', 'do_shortcode' );
         if (!$description = trim(strip_tags(term_description($object->term_id)))) {
             return;
         }
