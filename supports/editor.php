@@ -97,9 +97,9 @@ class term_editor_support
     }
     public function column_default($content, $column_name, $term_id)
     {
-//          echo var_export([$content, $column_name, $term_id],true);
         if ($column_name == 'xdescription') {
           $content = wp_trim_words(trim(strip_tags(term_description($term_id))));
+          if(empty($content)) $content = '—';
         }
         return $content;
     }
