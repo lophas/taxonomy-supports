@@ -28,9 +28,11 @@ class term_editor_support
         add_action('load-edit-tags.php', [$this, 'load_edit_tags'], PHP_INT_MAX);
         add_action('load-term.php', [$this, 'load_term']);
         add_action('admin_init', function(){
-          if ( current_user_can( 'unfiltered_html' ) ) {
-            remove_filter( 'pre_term_description', 'wp_filter_kses' );
-            remove_filter( 'term_description', 'wp_kses_data' );
+          if(!empty($_POST['description'])) {
+            if ( current_user_can( 'unfiltered_html' ) ) {
+              remove_filter( 'pre_term_description', 'wp_filter_kses' );
+              remove_filter( 'term_description', 'wp_kses_data' );
+            }
           }
         });
     }
@@ -62,22 +64,45 @@ class term_editor_support
         if ($GLOBALS['pagenow'] !== 'edit-tags.php') {
             return;
         } //prevent running on term.php!
-        add_filter('terms_clauses', [$this, 'search_description'], 10, 3);
 
-
-        if (!isset($_REQUEST['new'])) return;
-            $this->load_postbox();
-            add_action('admin_head', [$this, 'admin_head']);
-            add_action('add_termmeta_boxes_'.$this->taxonomy, [$this, 'catch_callbacks'], PHP_INT_MAX); //hijack existing pseudo metaboxes at the very end
-        		add_action($this->taxonomy."_term_add_form_top", [$this, 'form_top'], PHP_INT_MAX); //catch_fields start
-        		add_action($this->taxonomy."_add_form_fields", [$this, 'add_form_fields'], PHP_INT_MAX); //catch the fields
-        		add_screen_option('layout_columns', array('max' => 2, 'default' => 2));
-            if (wp_is_mobile()) {
-                wp_enqueue_script('jquery-touch-punch');
-            }
+        if (isset($_REQUEST['new'])) {
+          $this->load_postbox();
+          add_action('admin_head', [$this, 'admin_head']);
+          add_action('add_termmeta_boxes_'.$this->taxonomy, [$this, 'catch_callbacks'], PHP_INT_MAX); //hijack existing pseudo metaboxes at the very end
+          add_action($this->taxonomy."_term_add_form_top", [$this, 'form_top'], PHP_INT_MAX); //catch_fields start
+          add_action($this->taxonomy."_add_form_fields", [$this, 'add_form_fields'], PHP_INT_MAX); //catch the fields
+          add_screen_option('layout_columns', array('max' => 2, 'default' => 2));
+          if (wp_is_mobile()) {
+              wp_enqueue_script('jquery-touch-punch');
+          }
+        } else {
+          add_filter('terms_clauses', [$this, 'search_description'], 10, 3);
+          add_filter("manage_edit-".$this->taxonomy."_columns", [$this, 'manage_screen_columns'], 100);
+          add_filter('manage_'.$this->taxonomy.'_custom_column', [$this, 'column_default'], 10, 3);
+        }
     }
 
-
+    public function manage_screen_columns($columns)
+    {
+        $keys = array_keys($columns);
+        foreach ($keys as $i => $key) {
+            if (in_array($key, ['description'])) {
+                $keys[$i] = 'x'.$key;
+                break;
+            }
+        }
+        $columns = array_combine($keys, $columns);
+        //			echo '<pre>'.var_export($columns,true).'</pre>';
+        return $columns;
+    }
+    public function column_default($content, $column_name, $term_id)
+    {
+//          echo var_export([$content, $column_name, $term_id],true);
+        if ($column_name == 'xdescription') {
+          $content = wp_trim_words(trim(strip_tags(term_description($term_id))));
+        }
+        return $content;
+    }
     public function search_description($clauses, $taxonomies, $args)
     {
         if (empty($args['search']) || strpos($clauses['where'], 'tt.description') !== false) {
