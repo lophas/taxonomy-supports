@@ -1,5 +1,5 @@
 Description: Adds taxonomy supports for date, author, thumbnail, editor and meta_boxes
-Version: 2.7
+Version: 2.8
 Author: Attila Seres
 
 Features:
