@@ -174,7 +174,8 @@ class term_date_support
     }
     public function terms_clauses_sortable_columns($clauses)
     {
-        if(strpos($clauses['fields'],'t.*, tt.*') === false) return $clauses;
+        if(!in_array('WP_Terms_List_Table', array_map(function($i){return $i['class'];}, debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10)))) return $clauses;
+//        if(strpos($clauses['fields'],'t.*, tt.*') === false) return $clauses;
         if (isset($_GET['orderby'])) {
             $orderby = $_GET['orderby'];
             $order = $_GET['order'];

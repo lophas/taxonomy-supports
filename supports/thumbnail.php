@@ -142,22 +142,22 @@ jQuery(document).ready(function($){
 				// Stop propagation to prevent thickbox from activating.
 				event.stopPropagation();
 				wp.media.view.settings.post.featuredImageId = parseInt($('#_thumbnail_id').val());
-				e = wp.media.featuredImage.frame();
+				var e = wp.media.featuredImage.frame();
 				e.open();
-				browser = $(e.modal.$el.context);
-				button = browser.find('.media-button-select');
-				button.unbind('click');
-				button.click(function() {
-					selected = browser.find('ul.attachments li.selected');
-					if(selected.length == 1) {
-						$('#_thumbnail_id').val(selected.attr('data-id'));
-						$('#set-term-thumbnail').html(browser.find('.attachment-info .thumbnail-image').html());
-						$('#set-term-thumbnail').attr('aria-describedby',"set-term-thumbnail-desc");
-						$('#set-term-thumbnail-desc').show();
-						$('#remove-term-thumbnail').show();
-						e.close();
-					}
-				});
+        e.on('selection:toggle', function() {
+          $('.media-button-select').off();
+          $('.media-button-select').click(function(){
+            selected = $('ul.attachments li.selected');
+					  if(selected.length == 1) {
+						  $('#_thumbnail_id').val(selected.attr('data-id'));
+						  $('#set-term-thumbnail').html($('.attachment-info .thumbnail-image').html());
+						  $('#set-term-thumbnail').attr('aria-describedby',"set-term-thumbnail-desc");
+						  $('#set-term-thumbnail-desc').show();
+						  $('#remove-term-thumbnail').show();
+					  }
+            e.close();
+          });
+        });
 			}).on( 'click', '#remove-term-thumbnail', function() {
 				$('#_thumbnail_id').val(-1);
 				$('#set-term-thumbnail').html('<?php echo esc_html_x('Set featured image', 'post') ?>');
