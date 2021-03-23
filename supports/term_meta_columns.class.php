@@ -105,13 +105,14 @@ class term_meta_columns
             return;
         }
         $selector = $this->args['meta']['key'].'_selector';
-        $meta_name = apply_filters('term_meta_columns_data', $value, $this->args);
-        $meta_name = apply_filters('term_meta_columns_data_'.$this->args['meta']['key'], $meta_name, $this->args);
         if (empty($_GET[$selector]) && !defined('DOING_AJAX')) {
-            echo '<a href="'.add_query_arg($selector, $value).'">'.$meta_name.'</a>';
+            $output = '<a href="'.add_query_arg($selector, $value).'">'.$value.'</a>';
         } else {
-            echo $meta_name;
+            $output = $value;
         }
+        $output = apply_filters('term_meta_columns_data', $output, $value, $this->args);
+        $output = apply_filters('term_meta_columns_data_'.$this->args['meta']['key'], $output, $value, $this->args);
+        echo $output;
     }
     public function sortable($columns)
     {
@@ -152,8 +153,8 @@ class term_meta_columns
         echo '<select name="'.$selector.'">';
         echo '<option value="">'.__('All').' '.$this->args['meta']['label'].'</option>';
         foreach ($values as $value) {
-            $meta_name = apply_filters('term_meta_columns_data', $value, $this->args);
-            $meta_name = apply_filters('term_meta_columns_data_'.$this->args['meta']['key'], $meta_name, $this->args);
+            $meta_name = trim(strip_tags(apply_filters('term_meta_columns_data', $value, $value, $this->args)));
+            $meta_name = trim(strip_tags(apply_filters('term_meta_columns_data_'.$this->args['meta']['key'], $meta_name, $value, $this->args)));
             echo '<option value="'.$value.'" '.selected($value, $_GET[$selector]).'>'.$meta_name.'</option>';
         }
         echo '</select>';

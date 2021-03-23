@@ -11,7 +11,7 @@ class term_date_support
     }
     public function __construct()
     {
-        add_action('admin_init', [$this, 'load_edit_tags']);
+        add_action('admin_init', [$this, 'admin_init']);
         add_action('load-term.php', [$this, 'load_term']);
         add_action('created_term', [$this, 'created_term']);
         add_action('edited_terms', [$this, 'edited_terms']);
@@ -24,6 +24,47 @@ class term_date_support
             return $supports;
         });
     }
+    public function admin_init()
+    {
+        if ($GLOBALS['pagenow'] !== 'edit-tags.php' && !defined('DOING_AJAX')) {
+            return;
+        } //prevent running on term.php!
+        if (!taxonomy_supports($_REQUEST['taxonomy'], 'date')) {
+            return;
+        }
+        new term_meta_columns(['meta' => ['key' => '_term_date', 'label' => __('Published')], 'taxonomy' => $_REQUEST['taxonomy'], 'sortable' => true, 'quick_edit' => false, 'bulk_edit' => false, 'dropdown' => false]);
+        new term_meta_columns(['meta' => ['key' => '_term_modified', 'label' => __('Last Modified')], 'taxonomy' => $_REQUEST['taxonomy'], 'sortable' => true, 'quick_edit' => false, 'bulk_edit' => false, 'dropdown' => false]);
+        add_filter('term_meta_columns_data', [$this, 'columns_data'], 10, 3);
+/*
+        add_action('admin_head', function () {
+            ?><style>.column-modified {width: 10%}</style><?php
+        });
+        add_filter('manage_edit-'.$_REQUEST['taxonomy'].'_columns', [$this, 'manage_edit_columns']);
+        add_filter('manage_'.$_REQUEST['taxonomy'].'_custom_column', [$this, 'manage_custom_column'], 10, 3);
+        add_filter('manage_edit-'.$_REQUEST['taxonomy'].'_sortable_columns', [$this, 'manage_edit_sortable_columns']);
+        add_filter('terms_clauses', [$this, 'terms_clauses_sortable_columns']);
+*/
+    } 
+    public function columns_data($output, $date, $args) {
+//        $column_name = $args['meta']['key'];
+$ori = $date;
+        if (!empty($date)) {
+            $term_time = mysql2date('U', $date, false);
+            $time = current_time('timestamp', false);
+            $time_diff = $time - $term_time;
+
+            if ($time_diff >= 0 && $time_diff < DAY_IN_SECONDS) {
+                $date = sprintf(__('%s ago'), human_time_diff($term_time, $time));
+            } else {
+//                $format = get_option( 'date_format' );
+                $format = 'Y-m-d H:i:s';
+                $date = date_i18n($format, $term_time);
+            }
+//            $date .= ' '.$ori.' '.$time_diff.' '.date('H:i',  $term_time).' '.date('H:i',  $time);
+        }
+        return $date;
+    }
+
     public function created_term($term_id)
     {
         $term = get_term($term_id);
@@ -115,23 +156,6 @@ class term_date_support
     }
 
     //edit-tags.php
-    public function load_edit_tags()
-    {
-        if ($GLOBALS['pagenow'] !== 'edit-tags.php' && !defined('DOING_AJAX')) {
-            return;
-        } //prevent running on term.php!
-        if (!taxonomy_supports($_REQUEST['taxonomy'], 'date')) {
-            return;
-        }
-        add_action('admin_head', function () {
-            ?><style>.column-modified {width: 10%}</style><?php
-        });
-        add_filter('manage_edit-'.$_REQUEST['taxonomy'].'_columns', [$this, 'manage_edit_columns']);
-        add_filter('manage_'.$_REQUEST['taxonomy'].'_custom_column', [$this, 'manage_custom_column'], 10, 3);
-        add_filter('manage_edit-'.$_REQUEST['taxonomy'].'_sortable_columns', [$this, 'manage_edit_sortable_columns']);
-        add_filter('terms_clauses', [$this, 'terms_clauses_sortable_columns']);
-    } //load_edit_tags
-
 
     public function manage_edit_columns($columns)
     {
