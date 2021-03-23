@@ -12,7 +12,7 @@ class term_author_support
     }
     public function __construct()
     {
-        add_action('admin_init', [$this, 'load_edit_tags']);
+        add_action('admin_init', [$this, 'admin_init']);
         add_action('load-term.php', [$this, 'load_term']);
         add_action('created_term', [$this, 'created_term']);
         add_action('edited_terms', [$this, 'edited_terms']);
@@ -26,6 +26,23 @@ class term_author_support
             $supports[] = 'author';
             return $supports;
         });
+    }
+    public function admin_init()
+    {
+        if (!taxonomy_supports($_REQUEST['taxonomy'], 'author')) {
+            return;
+        }
+        if (taxonomy_supports($_REQUEST['taxonomy'], 'editor')) {
+            add_action("add_termmeta_boxes", function () {
+                add_meta_box('authorbox', __('Author'), [$this, 'author_meta_box'], null, 'side', 'core');
+            });
+        } else {
+            add_action($_REQUEST['taxonomy']."_add_form_fields", [$this, 'add_author_field']);
+        }
+        new term_meta_columns(['meta' => ['key' => self::META_KEY, 'label' => __('Author')], 'taxonomy' => $_REQUEST['taxonomy'], 'sortable' => true, 'quick_edit' => true, 'bulk_edit' => true, 'dropdown' => true]);
+        add_filter('term_meta_columns_quick_edit_'.self::META_KEY, [$this, 'quick_edit'], 10, 4);
+        add_filter('term_meta_columns_bulk_edit_'.self::META_KEY, [$this, 'bulk_edit'], 10, 2);
+        add_filter('term_meta_columns_data_'.self::META_KEY, [$this, 'columns_data'], 10, 3);
     }
 
     //term.php
@@ -84,6 +101,16 @@ class term_author_support
 <?php
     }
 
+    public function add_author_field()
+    {
+        ?>
+<div class="form-field term-author-wrap">
+	<label for="author"><?php _e('Author'); ?></label>
+<?php $this->author_meta_box() ?>
+</div>
+<?php
+    }
+
     public function author_meta_box($term = null)
     {
         $user_id = $term ? get_term_meta($term->term_id, self::META_KEY, true) : 0;
@@ -97,29 +124,17 @@ class term_author_support
     }
 
     //edit-tags.php
-    public function load_edit_tags()
-    {
-        if (!taxonomy_supports($_REQUEST['taxonomy'], 'author')) {
-            return;
+    public function columns_data($output, $value, $args = null) {
+        if($user = get_userdata($value)) {
+            $meta_name = $user->display_name ? $user->display_name : $user->nicename;
+            $selector = self::META_KEY.'_selector';
+            if (empty($_GET[$selector]) && !defined('DOING_AJAX')) {
+                $output = '<a href="'.add_query_arg($selector, $value).'">'.$meta_name.'</a>';
+            } else {
+                $output = $meta_name;
+            }
         }
-        if (taxonomy_supports($_REQUEST['taxonomy'], 'editor')) {
-            add_action("add_termmeta_boxes", function () {
-                add_meta_box('authorbox', __('Author'), [$this, 'author_meta_box'], null, 'side', 'core');
-            });
-        } else {
-            add_action($_REQUEST['taxonomy']."_add_form_fields", [$this, 'add_author_field']);
-        }
-        if ($GLOBALS['pagenow'] !== 'edit-tags.php' && !defined('DOING_AJAX')) {
-            return;
-        } //prevent running on term.php!
-        new term_meta_columns(['meta' => ['key' => self::META_KEY, 'label' => __('Author')], 'taxonomy' => $_REQUEST['taxonomy'], 'sortable' => true, 'quick_edit' => true, 'bulk_edit' => true, 'dropdown' => true]);
-        add_filter('term_meta_columns_quick_edit_'.self::META_KEY, [$this, 'quick_edit'], 10, 4);
-        add_filter('term_meta_columns_bulk_edit_'.self::META_KEY, [$this, 'bulk_edit'], 10, 2);
-        add_filter('term_meta_columns_data_'.self::META_KEY, [$this, 'author_name'], 10, 2);
-    } //load_edit_tags
-    public function author_name($value, $args = null) {
-        if($user = get_userdata($value)) $value = $user->display_name ? $user->display_name : $user->nicename;
-        return $value;
+        return $output;
     }
     public function quick_edit($output, $value, $term_id, $args) {
         $output = $this->dropdown($value);
@@ -137,16 +152,6 @@ class term_author_support
         }
         $output .= '</select>';
         return $output;
-    }
-
-    public function add_author_field()
-    {
-        ?>
-<div class="form-field term-author-wrap">
-	<label for="author"><?php _e('Author'); ?></label>
-<?php $this->author_meta_box() ?>
-</div>
-<?php
     }
 } //term_author_support
 term_author_support::instance();
