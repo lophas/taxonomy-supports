@@ -131,19 +131,7 @@ class term_author_support
     }
     public function dropdown($selected = null){
         $output .= '<select name="'.self::META_KEY.(isset($selected) ? '' : '_selector').'">';
-        $output .= '<option value="">'.__('None').'</option>';
-/*
-        global $wpdb;
-        $sql = 'SELECT DISTINCT m.meta_value FROM '.$wpdb->termmeta.' m
-				JOIN '.$wpdb->term_taxonomy.' tt ON tt.term_id = m.term_id
-				WHERE m.meta_key="'.self::META_KEY.'" AND tt.taxonomy = "'.$_REQUEST['taxonomy'].'" AND meta_value <> ""
-        ORDER BY m.meta_value ASC';
-        $values = $wpdb->get_col($sql);
-         foreach ($values as $value) {
-            $meta_name = $this->author_name($value);
-            $output .= '<option value="'.$value.'" '.(isset($selected) ? selected($value, $selected, false) : '').'>'.$meta_name.'</option>';
-        }
-*/
+        $output .= '<option value="">'. __(isset($selected) ? 'None' : "&mdash; No Change &mdash;" ).'</option>';
         foreach( get_users() as $user) {
             $output .= '<option value="'.$user->ID.'" '.(isset($selected) ? selected($user->ID, $selected, false) : '').'>'.$user->display_name.'</option>';
         }
