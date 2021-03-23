@@ -130,7 +130,7 @@ class term_author_support
         return $output;
     }
     public function dropdown($selected = null){
-        $output .= '<select name="'.self::META_KEY.(isset($selected) ? '' : '_selector').'">';
+        $output .= '<select name="'.self::META_KEY.'">';
         $output .= '<option value="">'. __(isset($selected) ? 'None' : "&mdash; No Change &mdash;" ).'</option>';
         foreach( get_users() as $user) {
             $output .= '<option value="'.$user->ID.'" '.(isset($selected) ? selected($user->ID, $selected, false) : '').'>'.$user->display_name.'</option>';
