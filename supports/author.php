@@ -112,11 +112,11 @@ class term_author_support
         if ($GLOBALS['pagenow'] !== 'edit-tags.php' && !defined('DOING_AJAX')) {
             return;
         } //prevent running on term.php!
-        new term_meta_columns(['meta' => ['key' => self::META_KEY, 'label' => __('Author')], 'sortable' => true, 'quick_edit' => true, 'bulk_edit' => true, 'dropdown' => true]);
+        new term_meta_columns(['meta' => ['key' => self::META_KEY, 'label' => __('Author')], 'taxonomy' => $_REQUEST['taxonomy'], 'sortable' => true, 'quick_edit' => true, 'bulk_edit' => true, 'dropdown' => true]);
         add_filter('term_meta_columns_quick_edit_'.self::META_KEY, [$this, 'quick_edit'], 10, 4);
         add_filter('term_meta_columns_bulk_edit_'.self::META_KEY, [$this, 'bulk_edit'], 10, 2);
         add_filter('term_meta_columns_data_'.self::META_KEY, [$this, 'author_name'], 10, 2);
-} //load_edit_tags
+    } //load_edit_tags
     public function author_name($value, $args = null) {
         if($user = get_userdata($value)) $value = $user->display_name ? $user->display_name : $user->nicename;
         return $value;
