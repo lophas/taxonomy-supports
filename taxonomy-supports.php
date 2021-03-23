@@ -2,11 +2,7 @@
 /*
     Plugin Name: Taxonomy Supports
     Description: Adds taxonomy supports for date, author, thumbnail, editor and meta_boxes
-<<<<<<< HEAD
-    Version: 2.9
-=======
-    Version: 2.8
->>>>>>> 6fd0e0572bd63676ad665d9ffa89596eddc81d5d
+    Version: 3.0
     Plugin URI: https://github.com/lophas/taxonomy-supports
     GitHub Plugin URI: https://github.com/lophas/taxonomy-supports
     Author: Attila Seres
