@@ -7,7 +7,7 @@ class taxonomy_hierarchical_columns {
       global $pagenow;
       if ($pagenow !== 'edit-tags.php' && !defined('DOING_AJAX')) return;
   	  if(!get_taxonomy($_REQUEST['taxonomy'])->hierarchical) return ;
-        add_filter('manage_edit-'.$_REQUEST['taxonomy'].'_columns', [$this, 'columns']);
+        add_filter('manage_edit-'.$_REQUEST['taxonomy'].'_columns', [$this, 'columns'], 1);
         add_filter('manage_'.$_REQUEST['taxonomy'].'_custom_column', [$this, 'column_data'], 10, 3);
         if($pagenow) add_action('load-'.$pagenow, [$this, 'load']);
     });
