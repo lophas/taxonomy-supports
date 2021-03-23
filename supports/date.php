@@ -11,7 +11,7 @@ class term_date_support
     }
     public function __construct()
     {
-        add_action('admin_init', [$this, 'admin_init']);
+        add_action('admin_init', [$this, 'admin_init'],99999);
         add_action('load-term.php', [$this, 'load_term']);
         add_action('created_term', [$this, 'created_term']);
         add_action('edited_terms', [$this, 'edited_terms']);
