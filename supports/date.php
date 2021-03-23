@@ -35,19 +35,10 @@ class term_date_support
         new term_meta_columns(['meta' => ['key' => '_term_date', 'label' => __('Published')], 'taxonomy' => $_REQUEST['taxonomy'], 'sortable' => true, 'quick_edit' => false, 'bulk_edit' => false, 'dropdown' => false]);
         new term_meta_columns(['meta' => ['key' => '_term_modified', 'label' => __('Last Modified')], 'taxonomy' => $_REQUEST['taxonomy'], 'sortable' => true, 'quick_edit' => false, 'bulk_edit' => false, 'dropdown' => false]);
         add_filter('term_meta_columns_data', [$this, 'columns_data'], 10, 3);
-/*
-        add_action('admin_head', function () {
-            ?><style>.column-modified {width: 10%}</style><?php
-        });
-        add_filter('manage_edit-'.$_REQUEST['taxonomy'].'_columns', [$this, 'manage_edit_columns']);
-        add_filter('manage_'.$_REQUEST['taxonomy'].'_custom_column', [$this, 'manage_custom_column'], 10, 3);
-        add_filter('manage_edit-'.$_REQUEST['taxonomy'].'_sortable_columns', [$this, 'manage_edit_sortable_columns']);
-        add_filter('terms_clauses', [$this, 'terms_clauses_sortable_columns']);
-*/
     } 
     public function columns_data($output, $date, $args) {
-//        $column_name = $args['meta']['key'];
-$ori = $date;
+        $column_name = $args['meta']['key'];
+        if(!in_array($column_name, ['_term_date', '_term_modified'])) return $output;
         if (!empty($date)) {
             $term_time = mysql2date('U', $date, false);
             $time = current_time('timestamp', false);
