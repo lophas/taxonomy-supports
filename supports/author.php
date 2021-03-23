@@ -2,6 +2,7 @@
 class term_author_support
 {
     private static $_instance;
+    const META_KEY = '_term_author';
     public static function instance()
     {
         if (!isset(self::$_instance)) {
@@ -35,22 +36,23 @@ class term_author_support
             return;
         }
         if (!empty($_REQUEST['author'])) {
-            add_term_meta($term_id, '_term_author', $_REQUEST['author']);
+            add_term_meta($term_id, self::META_KEY, $_REQUEST['author']);
         } elseif ($user_id = get_current_user_id()) {
-            add_term_meta($term_id, '_term_author', $user_id);
+            add_term_meta($term_id, self::META_KEY, $user_id);
         }
     }
     public function edited_terms($term_id)
     {
+        if(defined('DOING_AJAX')) return;
         $term = get_term($term_id);
         if (!taxonomy_supports($term->taxonomy, 'author')) {
             return;
         }
         if (!empty($_REQUEST['author'])) {
-            update_term_meta($term_id, '_term_author', $_REQUEST['author']);
-        } elseif (!get_term_meta($term_id, '_term_author', true)) {
+                update_term_meta($term_id, self::META_KEY, $_REQUEST['author']);
+        } elseif (!get_term_meta($term_id, self::META_KEY, true)) {
             if ($user_id = get_current_user_id()) {
-                update_term_meta($term_id, '_term_author', $user_id);
+                update_term_meta($term_id, self::META_KEY, $user_id);
             }
         }
     }
@@ -84,7 +86,7 @@ class term_author_support
 
     public function author_meta_box($term = null)
     {
-        $user_id = $term ? get_term_meta($term->term_id, '_term_author', true) : 0;
+        $user_id = $term ? get_term_meta($term->term_id, self::META_KEY, true) : 0;
         wp_dropdown_users(array(
         'who' => 'authors',
         'name' => 'author',
@@ -110,13 +112,40 @@ class term_author_support
         if ($GLOBALS['pagenow'] !== 'edit-tags.php' && !defined('DOING_AJAX')) {
             return;
         } //prevent running on term.php!
-        add_action('admin_head', function () {
-            ?><style>.column-author {width: 10%}</style><?php
-        });
-        add_filter('manage_edit-'.$_REQUEST['taxonomy'].'_columns', [$this, 'manage_edit_columns']);
-        add_filter('manage_'.$_REQUEST['taxonomy'].'_custom_column', [$this, 'manage_custom_column'], 10, 3);
-        add_filter('terms_clauses', [$this, 'terms_author_selector']);
-    } //load_edit_tags
+        new term_meta_columns(['meta' => ['key' => self::META_KEY, 'label' => __('Author')], 'sortable' => true, 'quick_edit' => true, 'bulk_edit' => true, 'dropdown' => true]);
+        add_filter('term_meta_columns_quick_edit_'.self::META_KEY, [$this, 'quick_edit'], 10, 4);
+        add_filter('term_meta_columns_bulk_edit_'.self::META_KEY, [$this, 'bulk_edit'], 10, 2);
+        add_filter('term_meta_columns_data_'.self::META_KEY, [$this, 'author_name'], 10, 2);
+} //load_edit_tags
+    public function author_name($value, $args = null) {
+        if($user = get_userdata($value)) $value = $user->display_name ? $user->display_name : $user->nicename;
+        return $value;
+    }
+    public function quick_edit($output, $value, $term_id, $args) {
+        $output = $this->dropdown($value);
+        return $output;
+    }
+    public function bulk_edit($output, $args) {
+        $output = $this->dropdown();
+        return $output;
+    }
+    public function dropdown($selected = null){
+        global $wpdb;
+        $output = '';
+        $sql = 'SELECT DISTINCT m.meta_value FROM '.$wpdb->termmeta.' m
+				JOIN '.$wpdb->term_taxonomy.' tt ON tt.term_id = m.term_id
+				WHERE m.meta_key="'.self::META_KEY.'" AND tt.taxonomy = "'.$_REQUEST['taxonomy'].'" AND meta_value <> ""
+        ORDER BY m.meta_value ASC';
+        $values = $wpdb->get_col($sql);
+        $output .= '<select name="'.self::META_KEY.'">';
+        $output .= '<option value="">'.__('None').'</option>';
+        foreach ($values as $value) {
+            $meta_name = $this->author_name($value);
+            $output .= '<option value="'.$value.'" '.(isset($selected) ? selected($value, $selected, false) : '').'>'.$meta_name.'</option>';
+        }
+        $output .= '</select>';
+        return $output;
+    }
 
     public function add_author_field()
     {
@@ -126,59 +155,6 @@ class term_author_support
 <?php $this->author_meta_box() ?>
 </div>
 <?php
-    }
-
-    public function manage_edit_columns($columns)
-    {
-        $columns['author'] = __('Author');
-        return $columns;
-    }
-    public function manage_custom_column($content, $column_name, $term_id)
-    {
-        if ($column_name == 'author') {
-            if ($user_id = get_term_meta($term_id, '_term_author', true)) {
-                //			echo get_userdata($user_id)->display_name;
-                $args = array(
-            'taxonomy' => $_REQUEST['taxonomy'],
-            'author' => $user_id
-        );
-                echo $this->get_edit_link($args, get_userdata($user_id)->display_name);
-            }
-        }
-    }
-    public function get_edit_link($args, $label, $class = '')
-    {
-        $url = add_query_arg($args, 'edit-tags.php');
-
-        $class_html = $aria_current = '';
-        if (! empty($class)) {
-            $class_html = sprintf(
-                ' class="%s"',
-                esc_attr($class)
-            );
-
-            if ('current' === $class) {
-                $aria_current = ' aria-current="page"';
-            }
-        }
-
-        return sprintf(
-            '<a href="%s"%s%s>%s</a>',
-            esc_url($url),
-            $class_html,
-            $aria_current,
-            $label
-        );
-    }
-    public function terms_author_selector($clauses)
-    {
-        if (empty($_GET['author'])) {
-            return $clauses;
-        }
-        global $wpdb;
-        $clauses['join']  .= ' INNER JOIN ' . $wpdb->termmeta . ' AS ta ON t.term_id = ta.term_id ';
-        $clauses['where'] .= ' AND ta.meta_key = "_term_author" AND ta.meta_value = '.$_GET['author'];
-        return $clauses;
     }
 } //term_author_support
 term_author_support::instance();

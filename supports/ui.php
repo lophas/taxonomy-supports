@@ -1,4 +1,10 @@
 <?php
+/*
+    do_action( 'restrict_manage_terms', $screen->taxonomy, $which );
+    do_action( 'manage_terms_extra_tablenav', $which );
+    do_action( 'bulk_edit_update', Array $term_ids);
+*/
+
 class term_ui
 {
     private static $_instance;
@@ -33,9 +39,6 @@ class term_ui
                     $location = get_edit_term_link($this->term, $_POST['taxonomy'], $_POST['post_type']);
                 }
             }
-            //		if($_POST['action'] != 'add-tag' || empty($_POST['tag-name'])) return $location;
-            //		$term = get_term_by('name', $_POST['tag-name'], $_POST['taxonomy']);
-            //		if($term->term_id) $location = get_edit_term_link( $term, $_POST['taxonomy'], $_POST['post_type'] );
             return $location;
         }, 10, 2);
         if ($GLOBALS['pagenow'] !== 'edit-tags.php') {
@@ -55,7 +58,19 @@ class term_ui
                 return $columns;
             });
         }
-    }
+        if($_REQUEST['bulk_edit'] && $_REQUEST['action'] === 'edit') {
+            do_action('bulk_edit_update', $_REQUEST['delete_tags']);
+            $url = $_REQUEST['_wp_http_referer'];
+            wp_redirect($url);
+            exit;
+          }
+          add_filter( "bulk_actions-".get_current_screen()->id, function($actions ) {
+            $actions = ['edit' => __('Edit')] + $actions;
+            return $actions;
+          });
+          add_action('admin_print_footer_scripts', [$this, 'bulk_edit_script']);
+          add_action('admin_print_footer_scripts', [$this, 'table_nav_script']);
+        }
 
     public function admin_head_edit_tags()
     {
@@ -88,7 +103,105 @@ class term_ui
     jQuery('.form-field.term-description-wrap').remove();
     </script><?php
     }
-
+    public function table_nav_script() {
+        $this->extra_tablenav('top');
+        $this->extra_tablenav('bottom');
+      ?>
+      <script>
+        jQuery('#posts-filter').attr('method','get');
+        jQuery('.extra_tablenav').each(function(){
+            position = jQuery(this).data('which');
+            jQuery(this).insertAfter('.tablenav.' + position + ' .bulkactions');
+        });
+      </script>
+      <?php
+    }
+    public function extra_tablenav( $which ) {
+      ?>
+      <div class="extra_tablenav" data-which="<?php echo $which ?>">
+      <?php
+        if ( 'top' === $which ) {
+            ob_start();
+          ob_start();
+          do_action( 'restrict_manage_terms', get_current_screen()->taxonomy, $which );
+          $output = ob_get_clean();
+          if ( ! empty( $output ) ) {
+            echo $output;
+            submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'term-query-submit' ) );
+          }
+            $output = ob_get_clean();
+            if ( ! empty( $output ) ) echo '<div class="alignleft actions">'.$output.'</div>';
+        }
+        do_action( 'manage_terms_extra_tablenav', $which );
+      ?>
+      </div>
+      <?php
+    }
+    public function bulk_edit_script($taxonomy ) {
+      ?><table>
+      <tr id="bulk-edit" class="inline-edit-row inline-edit-row-page bulk-edit-row bulk-edit-row-page bulk-edit-page inline-editor" style="display: none">
+          <td colspan="1" class="colspanchange">
+          <fieldset class="inline-edit-col-left">
+            <legend class="inline-edit-legend"><?php _e( 'Bulk Edit' ) ?></legend>
+            <div class="inline-edit-col">
+                <div id="bulk-title-div">
+                  <div id="bulk-titles"></div>
+                </div>
+            </div>
+          </fieldset>
+          <fieldset class="inline-edit-col-right">
+      <?php
+      $screen = get_current_screen();
+      $columns = array_keys(get_column_headers($screen));
+      $hidden = get_hidden_columns($screen);
+      foreach ( array_diff($columns, $hidden) as $column) {
+          do_action( 'bulk_edit_custom_box', $column, $screen->taxonomy );
+      }
+    ?>
+        </fieldset>
+          <div class="submit inline-edit-save">
+            <button type="button" class="button cancel alignleft"><?php _e( 'Cancel' ); ?></button>
+            <input type="submit" name="bulk_edit" id="bulk_edit" class="button button-primary alignright" value="<?php _e( 'Update' ); ?>"  />							<input type="hidden" name="post_view" value="excerpt" />
+            <input type="hidden" name="screen" value="edit-page" />
+                    <br class="clear" />
+            <div class="notice notice-error notice-alt inline hidden">
+              <p class="error"></p>
+            </div>
+          </div>
+  
+      </td></tr>
+      </table>
+      <script>
+      jQuery('#bulk-edit td').attr('colspan', jQuery('.wp-list-table thead th:visible').length + 1);
+      jQuery('#inlineedit').append(jQuery('#bulk-edit'));
+      jQuery('#doaction').click(function(e){
+        action = jQuery('select[name="action"]').val();
+        checked = jQuery('#the-list input[id^="cb-select"]:checked');
+        if( action === 'edit' || action === '-1' || !checked.length) {
+          e.preventDefault();
+          if( action === 'edit' && checked.length > 0) {
+            jQuery('#the-list').prepend(jQuery('#bulk-edit').clone().show());
+            jQuery('#the-list #bulk-titles').html('');
+            checked.each(function(){
+              row = jQuery(this).closest('tr');
+              id = row.find('input[id^="cb-select"]').val();
+              name = row.find('.name .row-title').text();
+              if(name == '') name = "<?php _e('(no title)') ?>";
+              jQuery('#the-list #bulk-titles').append('<div id="ttle' + id + '"><a id="_' + id + '" class="ntdelbutton" title="<?php _e('Remove From Bulk Edit') ?>">X</a>' + name + '</div>');
+            });
+            jQuery('#the-list #bulk-edit .ntdelbutton').click(function(){
+              jQuery(this).closest('div').remove();
+            });
+            jQuery('#the-list #bulk-edit button.cancel').click(function(){
+              jQuery(this).closest('#bulk-edit').remove();
+            });
+          }
+        }
+      });
+  
+      </script><?php
+    }
+  
     //term.php
     public function load_term()
     {
