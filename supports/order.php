@@ -122,7 +122,6 @@ class term_order_support
    if(empty($term_ids) || !is_numeric($_REQUEST['term_reorder'])) return;
   	$term_order = intval($_REQUEST['term_reorder']);
   	$step_order = intval($_REQUEST['term_steporder']);
-	global $wpdb;
    foreach($term_ids as $term_id) {
       update_term_meta($term_id, self::META_KEY, $term_order);
       $term_order += $step_order;
