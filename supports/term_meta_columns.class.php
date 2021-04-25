@@ -105,7 +105,7 @@ class term_meta_columns
             return;
         }
         $selector = $this->args['meta']['key'].'_selector';
-        if (empty($_GET[$selector]) && !defined('DOING_AJAX')) {
+        if (empty($_GET[$selector]) && $this->args['dropdown'] && !defined('DOING_AJAX')) {
             $output = '<a href="'.add_query_arg($selector, $value).'">'.$value.'</a>';
         } else {
             $output = $value;
