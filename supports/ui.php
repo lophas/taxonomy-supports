@@ -52,12 +52,14 @@ class term_ui
         }
         add_action('admin_head', [$this, 'admin_head_edit_tags']);
         add_action('admin_footer', [$this, 'admin_footer_edit_tags']);
+/*
         if (!taxonomy_supports($this->taxonomy, 'editor')) {
             add_filter('manage_edit-'.$this->taxonomy.'_columns', function ($columns) {
                 unset($columns['description']);
                 return $columns;
             });
         }
+*/
         if($_REQUEST['bulk_edit'] && $_REQUEST['action'] === 'edit') {
             do_action('bulk_edit_update', $_REQUEST['delete_tags']);
             $url = $_REQUEST['_wp_http_referer'];
@@ -80,9 +82,9 @@ class term_ui
 				float:none;
 				width:100%;
 			}
-      <?php if (!taxonomy_supports($this->taxonomy, 'editor')) : ?>
+      <?php /* if (!taxonomy_supports($this->taxonomy, 'editor')) : ?>
       .column-description{display:none;}
-      <?php endif ?>
+      <?php endif */ ?>
 			</style><?php
     }
     public function admin_footer_edit_tags()
@@ -96,13 +98,14 @@ class term_ui
 				});
 			</script><?php
     }
-
+/*
     public function description_field_remove()
     {
         ?><script>
     jQuery('.form-field.term-description-wrap').remove();
     </script><?php
     }
+*/
     public function table_nav_script() {
         $this->extra_tablenav('top');
         $this->extra_tablenav('bottom');
@@ -206,9 +209,11 @@ class term_ui
     public function load_term()
     {
         $this->taxonomy = $_REQUEST['taxonomy'];
+/*
         if (!taxonomy_supports($this->taxonomy, 'editor')) {
             add_action($this->taxonomy."_edit_form_fields", [$this, 'description_field_remove']);
         }
+*/
         add_action('admin_footer', function () {
             ?>
   <a href="<?php echo add_query_arg(['new'=>'','taxonomy'=>$this->taxonomy], 'edit-tags.php') ?>" class="page-title-action"><?php echo _x('Add New', 'post') ?></a>
