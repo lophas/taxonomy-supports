@@ -3,6 +3,8 @@
     do_action( 'restrict_manage_terms', $screen->taxonomy, $which );
     do_action( 'manage_terms_extra_tablenav', $which );
     do_action( 'bulk_edit_update', Array $term_ids);
+    do_action('quick_edit_custom_box_fields', $screen->taxonomy)
+    do_action('bulk_edit_custom_box_fields', $screen->taxonomy)
 */
 
 class term_ui
@@ -82,6 +84,9 @@ class term_ui
 				float:none;
 				width:100%;
 			}
+            .inline-edit-row fieldset label, .inline-edit-row fieldset span.inline-edit-categories-label {
+                clear:both;
+            }
       <?php /* if (!taxonomy_supports($this->taxonomy, 'editor')) : ?>
       .column-description{display:none;}
       <?php endif */ ?>
@@ -97,6 +102,16 @@ class term_ui
 					jQuery('.page-title-action').detach().appendTo('h1').show();
 				});
 			</script><?php
+
+?><div id="inline-custom-fields">
+<?php do_action('quick_edit_custom_box_fields', $this->taxonomy) ?>
+</div>
+<script>
+jQuery('#inline-edit').find('.inline-edit-col').last().append(jQuery('#inline-custom-fields').html());
+</script>
+<?php
+
+
     }
 /*
     public function description_field_remove()
@@ -141,7 +156,8 @@ class term_ui
       <?php
     }
     public function bulk_edit_script($taxonomy ) {
-      ?><table>
+        $screen = get_current_screen();
+        ?><table>
       <tr id="bulk-edit" class="inline-edit-row inline-edit-row-page bulk-edit-row bulk-edit-row-page bulk-edit-page inline-editor" style="display: none">
           <td colspan="1" class="colspanchange">
           <fieldset class="inline-edit-col-left">
@@ -153,15 +169,18 @@ class term_ui
             </div>
           </fieldset>
           <fieldset class="inline-edit-col-right">
+          <div class="inline-edit-col">
+          <?php do_action( 'bulk_edit_custom_box_fields', $screen->taxonomy ) ?>
+          </div>
+          </fieldset>
       <?php
-      $screen = get_current_screen();
       $columns = array_keys(get_column_headers($screen));
-      $hidden = get_hidden_columns($screen);
-      foreach ( array_diff($columns, $hidden) as $column) {
+//      $hidden = get_hidden_columns($screen);
+//      foreach ( array_diff($columns, $hidden) as $column) {
+      foreach ( $columns as $column) {
           do_action( 'bulk_edit_custom_box', $column, $screen->taxonomy );
       }
     ?>
-        </fieldset>
           <div class="submit inline-edit-save">
             <button type="button" class="button cancel alignleft"><?php _e( 'Cancel' ); ?></button>
             <input type="submit" name="bulk_edit" id="bulk_edit" class="button button-primary alignright" value="<?php _e( 'Update' ); ?>"  />							<input type="hidden" name="post_view" value="excerpt" />

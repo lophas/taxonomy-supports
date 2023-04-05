@@ -77,12 +77,12 @@ class term_meta_columns
           add_filter('manage_edit-'.$taxnow.'_sortable_columns', [$this, 'sortable']);
         }
         if ($this->args['bulk_edit']) {
-            add_action('bulk_edit_custom_box', [$this, 'bulk_edit_custom_box'], 10, 2);
+            add_action('bulk_edit_custom_box_fields', [$this, 'bulk_edit_custom_box_fields']);
             add_action('bulk_edit_update', [$this, 'bulk_edit_update']);
         }
 
         if ($this->args['quick_edit']) {
-            add_action('quick_edit_custom_box', [$this, 'quick_edit_custom_box'], 10, 3);
+            add_action('quick_edit_custom_box_fields', [$this, 'quick_edit_custom_box_fields']);
             add_action('admin_print_footer_scripts', [$this, 'quick_edit_populate_fields'], 999);
         }
         if ($this->args['dropdown']) {
@@ -159,17 +159,13 @@ class term_meta_columns
         }
         echo '</select>';
     }
-    public function bulk_edit_custom_box($column, $taxonomy)
+    public function bulk_edit_custom_box_fields($taxonomy)
     {
-        if (in_array($this->args['meta']['key'], get_hidden_columns(get_current_screen()))) {
-            return;
-        }
+//        if (in_array($this->args['meta']['key'], get_hidden_columns(get_current_screen()))) return;
+ 
         $key = $this->args['meta']['key'];
-        if ($column !== $key || !in_array($taxonomy, $this->args['taxonomy'])) {
-            return;
-        } 
+//        if ($column !== $key || !in_array($taxonomy, $this->args['taxonomy'])) return;
         ?>
-  				<div class="inline-edit-col">
             <label class="inline-edit-<?php echo $key ?>">
               <span class="title"><?php echo $this->args['meta']['label'] ?></span>
         <?php
@@ -179,7 +175,6 @@ class term_meta_columns
               echo $output;
         ?>
           </label>
-          </div>
   <?php
     }
     public function bulk_edit_update($term_ids)
@@ -200,19 +195,14 @@ class term_meta_columns
             update_term_meta($term_id, $key, $val);
         }
     }
-    public function quick_edit_custom_box($column, $screen, $taxonomy)
+    public function quick_edit_custom_box_fields($taxonomy)
     {
         $key = $this->args['meta']['key'];
-        if ($column !== $key || !in_array($taxonomy, $this->args['taxonomy'])) {
-            return;
-        } ?><fieldset class="inline-edit-col-right">
-	<div class="inline-edit-col">
-          <label class="inline-edit-<?php echo $key ?>">
+        if (!in_array($taxonomy, $this->args['taxonomy'])) return;
+        ?><label class="inline-edit-<?php echo $key ?>">
             <span class="title"><?php echo $this->args['meta']['label'] ?></span>
 			  <input id="<?php echo $key ?>" name="<?php echo $key ?>" type="text" value="" placeholder="<?php echo __("Loading&hellip;") ?>">
-        </label>
-	</div>
-</fieldset><?php
+        </label><?php
     }
     public function quick_edit_populate_fields()
     {

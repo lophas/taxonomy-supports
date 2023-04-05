@@ -18,9 +18,9 @@ class taxonomy_hierarchical_columns {
     public function load(){
 //      add_filter( 'default_hidden_columns', function($hidden, $screen ) {return array_merge($hidden, ['parent']);}, 10, 2);
 //      add_filter( 'hidden_columns', function($hidden, $screen, $use_defaults){return apply_filters('default_hidden_columns',[], $screen);}, 10, 3);
-      add_action('quick_edit_custom_box', [$this, 'quick_edit_custom_box'], 10, 3);
+      add_action('quick_edit_custom_box_fields', [$this, 'quick_edit_custom_box_fields']);
       add_action('admin_print_footer_scripts', [$this, 'quick_edit_populate_fields']);
-      add_action('bulk_edit_custom_box', [$this, 'bulk_edit_custom_box'], 10, 2);
+      add_action('bulk_edit_custom_box_fields', [$this, 'bulk_edit_custom_box_fields']);
       add_action('bulk_edit_update', [$this, 'bulk_edit_update']);
       add_action('restrict_manage_terms', [$this,'parentSelector'], 10, 2);
 
@@ -69,19 +69,15 @@ class taxonomy_hierarchical_columns {
         }
     }
 
-  public function quick_edit_custom_box($column_name, $screen, $taxonomy) {
-    if($screen != 'edit-tags' || $column_name !== 'parent') return false;
+  public function quick_edit_custom_box_fields( $taxonomy) {
+//    if($screen != 'edit-tags' || $column_name !== 'parent') return false;
 //echo '<hr><pre>'.var_export([$column_name, $screen, $taxonomy],true).'</pre>';
 
   ?>
-      <fieldset>
-          <div id="my-custom-content" class="inline-edit-col">
               <label>
                   <span class="title"><?php _e('Parent') ?></span>
                   <input name="parent" id="parent" type="text" placeholder="<?php _e("Loading&hellip;") ?>" disabled>
               </label>
-          </div>
-      </fieldset>
   <?php
   }
 
@@ -145,12 +141,9 @@ $('input[name="slug"]').closest('label').hide(); //hide quickedit slug row
     }
     exit;
   }
- function bulk_edit_custom_box( $column_name,  $taxonomy ) {
-
-   if ($column_name !=='parent') return;
-   if (in_array($column_name, get_hidden_columns(get_current_screen()))) return;
+ function bulk_edit_custom_box_fields( $taxonomy ) {
+//   if (in_array('parent', get_hidden_columns(get_current_screen()))) return;
    ?>
-           <div id="my-custom-content" class="inline-edit-col">
                <label>
                    <span class="title"><?php _e('Parent') ?></span>
  <?php
@@ -169,7 +162,6 @@ $('input[name="slug"]').closest('label').hide(); //hide quickedit slug row
             wp_dropdown_categories( $dropdown_args );
 ?>
                </label>
-           </div>
    <?php
  }
  function bulk_edit_update($term_ids) {
