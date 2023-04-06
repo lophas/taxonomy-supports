@@ -2,7 +2,7 @@
 /*
     Plugin Name: Meta term columns class
     Description:
-    Version: 2.3
+    Version: 2.5
     Plugin URI:
     Author: Attila Seres
     Author URI:
@@ -225,21 +225,19 @@ class term_meta_columns
       var term_id = 0;
       if ( typeof( id ) == 'object' ) term_id = parseInt( this.getId( id ) );
       if ( term_id > 0 ) {
-          var edit_row = $( '#edit-' + term_id );
-          var this_field = edit_row.find( '.inline-edit-meta-<?php echo $key ?>' );
-		      if(this_field.length) {
-//                this_value = $( '#inline_' + term_id + ' .meta-<?php echo $key ?>').text(); //not working after ajax quickedit
-                this_value = $( '#tag-' + term_id + ' .hidden .meta-<?php echo $key ?>').text();
-                this_input = this_field.find('input:radio,input:checkbox');
-                if(this_input.length) {
+        var this_field = $( '#edit-' + term_id );
+        if(this_field.length) {
+            var this_value = $( '#inline_ui_' + term_id).find('.meta-<?php echo $key ?>').text();
+            var this_input = this_field.find('input[name="<?php echo $key ?>"]:radio,input[name="<?php echo $key ?>"]:checkbox');
+            if(this_input.length) {
                     this_input.filter('[value=' + this_value + ']').prop('checked', true);
-                } else {
-                    this_input = this_field.find('input,select,textarea');
+            } else {
+                    this_input = this_field.find('input[name="<?php echo $key ?>"],select[name="<?php echo $key ?>"],textarea[name="<?php echo $key ?>"]');
                     if(this_input.length) {
                         this_input.val(this_value); //instant value
                     }
-                }
-	          }
+            }
+	    }
       }
    };
 })(jQuery);

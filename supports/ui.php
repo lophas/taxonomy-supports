@@ -24,13 +24,17 @@ class term_ui
     {
         add_action('load-edit-tags.php', [$this, 'load_edit_tags'], PHP_INT_MAX);
         add_action('load-term.php', [$this, 'load_term']);
-        add_filter( 'tag_row_actions', function($actions, $tag ) {
-            ob_start();
-            do_action('add_inline_term_data', $tag);
-            $hidden = ob_get_clean();
-            if(!empty($hidden)) {
-                $keys = array_keys($actions);
-                $actions[$keys[0]] .= '<div class="inline_term_data hidden">'.$hidden.'</div>';
+        add_filter( 'tag_row_actions', function($actions, $term ) {
+            if($actions['inline hide-if-no-js']) {
+                $output = '';
+//                $qe_data = get_term( $term->term_id, $taxonomy, OBJECT, 'edit' );
+//                $output .= '<div class="name">' . $qe_data->name . '</div>';
+//                $output .= '<div class="slug">' . apply_filters( 'editable_slug', $qe_data->slug, $qe_data ) . '</div>';
+//                $output .= '<div class="parent">' . $qe_data->parent . '</div>';
+                ob_start();
+                do_action('add_inline_term_data', $term);
+                $output .= ob_get_clean();
+                if(!empty($output)) $actions['inline hide-if-no-js'] .= '<div class="hidden" id="inline_ui_' . $term->term_id . '">'.$output.'</div>';
             }
             return $actions;
         }, 10, 2);
@@ -120,11 +124,6 @@ class term_ui
 </div>
 <script>
 jQuery('#inline-edit').find('.inline-edit-col').last().append(jQuery('#inline-custom-fields').html());
-jQuery('.inline_term_data').each(function(){
-    content = jQuery(this).html();
-    jQuery(this).closest('td').find('[id^=inline_]').append(content);
-    jQuery(this).remove();
-});
 </script>
 <?php
 
