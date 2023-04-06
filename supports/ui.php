@@ -176,6 +176,7 @@ jQuery('#inline-edit').find('.inline-edit-col').last().append(jQuery('#inline-cu
         ?><table>
       <tr id="bulk-edit" class="inline-edit-row inline-edit-row-page bulk-edit-row bulk-edit-row-page bulk-edit-page inline-editor" style="display: none">
           <td colspan="1" class="colspanchange">
+          <div class="inline-edit-wrapper" role="region" aria-labelledby="quick-edit-legend">
           <fieldset class="inline-edit-col-left">
             <legend class="inline-edit-legend"><?php _e( 'Bulk Edit' ) ?></legend>
             <div class="inline-edit-col">
@@ -206,7 +207,7 @@ jQuery('#inline-edit').find('.inline-edit-col').last().append(jQuery('#inline-cu
               <p class="error"></p>
             </div>
           </div>
-  
+    </div>
       </td></tr>
       </table>
       <script>
