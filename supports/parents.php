@@ -12,8 +12,6 @@ class taxonomy_hierarchical_columns {
         if($pagenow) add_action('load-'.$pagenow, [$this, 'load']);
     });
     $this->selector = 'parent_selector';
-    $this->action = __CLASS__;
-    add_action('wp_ajax_'.$this->action, array($this,'do_ajax'));
   }
     public function load(){
 //      add_filter( 'default_hidden_columns', function($hidden, $screen ) {return array_merge($hidden, ['parent']);}, 10, 2);
@@ -70,15 +68,24 @@ class taxonomy_hierarchical_columns {
     }
 
   public function quick_edit_custom_box_fields( $taxonomy) {
-//    if($screen != 'edit-tags' || $column_name !== 'parent') return false;
-//echo '<hr><pre>'.var_export([$column_name, $screen, $taxonomy],true).'</pre>';
+$dropdown_args = array(
+  'hide_empty'       => 0,
+  'hide_if_empty'    => false,
+  'taxonomy'         => $taxonomy,
+  'name'             => 'parent',
+  'orderby'          => 'name',
+  'hierarchical'     => true,
+//        'show_option_none' => __( 'None' ),
+  'show_option_all' => __( 'None' ),
+);
 
-  ?>
-              <label>
-                  <span class="title"><?php _e('Parent') ?></span>
-                  <input name="parent" id="parent" type="text" placeholder="<?php _e("Loading&hellip;") ?>" disabled>
-              </label>
-  <?php
+$dropdown_args = apply_filters( 'taxonomy_parent_dropdown_args', $dropdown_args, $taxonomy, 'edit' );
+
+?><label class="inline-edit-parent">
+<span class="parent"><?php _e('Parent') ?></span>
+<?php wp_dropdown_categories( $dropdown_args ) ?>
+</label>
+<?php
   }
 
   public function quick_edit_populate_fields() {
@@ -98,48 +105,13 @@ $('input[name="slug"]').closest('label').hide(); //hide quickedit slug row
 	  }
 	  if ( term_id > 0 ) {
 		  var this_field = $( '#edit-' + term_id ).find( '[name="parent"]' );
-      var data = {
-          term_id: term_id,
-          taxonomy: '<?php echo $_REQUEST['taxonomy']?>',
-          action: '<?php echo $this->action ?>'
-      };
-      jQuery.post(ajaxurl, data, function(result) {
-        this_field.replaceWith(result); //updated value from ajax
-      }, 'html');
-/*
-		  this_field.find('option[value="' + term_id + '"]').prop('disabled',true);
-      var parent = $( '#tag-' + term_id ).find('.column-parent span').data('parent_id');
-		  if(parent) {
-			     this_field.val(parent);
-		  }
-*/
+      var this_value = $( '#inline_' + term_id).find('.parent').text();
+      this_field.val(this_value);
        }
      };
   })(jQuery);
   </script>
   <?php
-  }
-  function do_ajax() {
-    if (($term_id = $_REQUEST['term_id'])) {
-      $tag = get_term(intval($term_id));
-      $dropdown_args = array(
-        'hide_empty'       => 0,
-        'hide_if_empty'    => false,
-        'taxonomy'         =>$_REQUEST['taxonomy'],
-        'name'             => 'parent',
-        'orderby'          => 'name',
-        'selected'         => $tag->parent,
-        'exclude_tree'     => $tag->term_id,
-        'hierarchical'     => true,
-//        'show_option_none' => __( 'None' ),
-        'show_option_all' => __( 'None' ),
-      );
-
-      /** This filter is documented in wp-admin/edit-tags.php */
-      $dropdown_args = apply_filters( 'taxonomy_parent_dropdown_args', $dropdown_args, $_REQUEST['taxonomy'], 'edit' );
-      wp_dropdown_categories( $dropdown_args );
-    }
-    exit;
   }
  function bulk_edit_custom_box_fields( $taxonomy ) {
 //   if (in_array('parent', get_hidden_columns(get_current_screen()))) return;

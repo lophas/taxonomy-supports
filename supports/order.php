@@ -40,9 +40,9 @@ class term_order_support
             add_action($_REQUEST['taxonomy']."_add_form_fields", [$this, 'add_order_field']);
         }
         new term_meta_columns(['meta' => ['key' => self::META_KEY, 'label' => __('Order')], 'taxonomy' => $_REQUEST['taxonomy'], 'sortable' => 'num', 'quick_edit' => true, 'bulk_edit' => true, 'dropdown' => false]);
-        add_filter('term_meta_columns_quick_edit_'.self::META_KEY, [$this, 'quick_edit'], 10, 4);
+        add_filter('term_meta_columns_quick_edit_'.self::META_KEY, [$this, 'quick_edit'], 10, 2);
         add_filter('term_meta_columns_bulk_edit_'.self::META_KEY, [$this, 'bulk_edit'], 10, 2);
-      	add_action('bulk_edit_update', [$this, 'bulk_edit_update']);
+      	add_action('bulk_edit_update', [$this, 'bulk_edit_update'], 11);
     }
 
     //term.php
@@ -103,7 +103,7 @@ class term_order_support
     }
 
     //edit-tags.php
-    public function quick_edit($output, $value, $term_id, $args) {
+    public function quick_edit($output, $args) {
 		$output = str_replace('type="text"','type="number" step="1"', $output);
         return $output;
     }

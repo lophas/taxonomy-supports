@@ -40,7 +40,7 @@ class term_author_support
             add_action($_REQUEST['taxonomy']."_add_form_fields", [$this, 'add_author_field']);
         }
         new term_meta_columns(['meta' => ['key' => self::META_KEY, 'label' => __('Author')], 'taxonomy' => $_REQUEST['taxonomy'], 'sortable' => true, 'quick_edit' => true, 'bulk_edit' => true, 'dropdown' => true]);
-        add_filter('term_meta_columns_quick_edit_'.self::META_KEY, [$this, 'quick_edit'], 10, 4);
+        add_filter('term_meta_columns_quick_edit_'.self::META_KEY, [$this, 'quick_edit'], 10, 2);
         add_filter('term_meta_columns_bulk_edit_'.self::META_KEY, [$this, 'bulk_edit'], 10, 2);
         add_filter('term_meta_columns_data_'.self::META_KEY, [$this, 'columns_data'], 10, 3);
     }
@@ -136,17 +136,18 @@ class term_author_support
         }
         return $output;
     }
-    public function quick_edit($output, $value, $term_id, $args) {
-        $output = $this->dropdown($value);
+    public function quick_edit($output, $args) {
+        $output = '<select name="'.self::META_KEY.'">';
+        $output .= '<option value="">'. __('None' ).'</option>';
+        foreach( get_users() as $user) {
+            $output .= '<option value="'.$user->ID.'" >'.$user->display_name.'</option>';
+        }
+        $output .= '</select>';
         return $output;
     }
     public function bulk_edit($output, $args) {
-        $output = $this->dropdown();
-        return $output;
-    }
-    public function dropdown($selected = null){
-        $output .= '<select name="'.self::META_KEY.'">';
-        $output .= '<option value="">'. __(isset($selected) ? 'None' : "&mdash; No Change &mdash;" ).'</option>';
+        $output = '<select name="'.self::META_KEY.'">';
+        $output .= '<option value="">'. __( "&mdash; No Change &mdash;" ).'</option>';
         foreach( get_users() as $user) {
             $output .= '<option value="'.$user->ID.'" '.(isset($selected) ? selected($user->ID, $selected, false) : '').'>'.$user->display_name.'</option>';
         }

@@ -3,8 +3,9 @@
     do_action( 'restrict_manage_terms', $screen->taxonomy, $which );
     do_action( 'manage_terms_extra_tablenav', $which );
     do_action( 'bulk_edit_update', Array $term_ids);
-    do_action('quick_edit_custom_box_fields', $screen->taxonomy)
-    do_action('bulk_edit_custom_box_fields', $screen->taxonomy)
+    do_action(' quick_edit_custom_box_fields', $screen->taxonomy)
+    do_action(' bulk_edit_custom_box_fields', $screen->taxonomy)
+    do_action(' add_inline_term_data', $tag)
 */
 
 class term_ui
@@ -23,6 +24,16 @@ class term_ui
     {
         add_action('load-edit-tags.php', [$this, 'load_edit_tags'], PHP_INT_MAX);
         add_action('load-term.php', [$this, 'load_term']);
+        add_filter( 'tag_row_actions', function($actions, $tag ) {
+            ob_start();
+            do_action('add_inline_term_data', $tag);
+            $hidden = ob_get_clean();
+            if(!empty($hidden)) {
+                $keys = array_keys($actions);
+                $actions[$keys[0]] .= '<div class="inline_term_data hidden">'.$hidden.'</div>';
+            }
+            return $actions;
+        }, 10, 2);
     }
 
     //edit-tags.php
@@ -43,6 +54,7 @@ class term_ui
             }
             return $location;
         }, 10, 2);
+
         if ($GLOBALS['pagenow'] !== 'edit-tags.php') {
             return;
         } //prevent running on term.php!
@@ -108,6 +120,11 @@ class term_ui
 </div>
 <script>
 jQuery('#inline-edit').find('.inline-edit-col').last().append(jQuery('#inline-custom-fields').html());
+jQuery('.inline_term_data').each(function(){
+    content = jQuery(this).html();
+    jQuery(this).closest('td').find('[id^=inline_]').append(content);
+    jQuery(this).remove();
+});
 </script>
 <?php
 

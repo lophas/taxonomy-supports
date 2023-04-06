@@ -2,7 +2,7 @@
 /*
     Plugin Name: Meta term columns class
     Description:
-    Version: 2.2
+    Version: 2.3
     Plugin URI:
     Author: Attila Seres
     Author URI:
@@ -16,6 +16,14 @@ new term_meta_columns(key|[
   'bulk_edit' => false,
 ]);
 apply_filters('term_meta_columns_data', $data, $this->args)
+apply_filters('term_meta_columns_data', $output, $this->args)
+apply_filters('term_meta_columns_data_'.$key, $output, $this->args)
+apply_filters('term_meta_columns_update', $_REQUEST[$key], $_REQUEST, $this->args);
+apply_filters('term_meta_columns_update_'.$key, $val, $_REQUEST, $this->args);
+apply_filters('term_meta_columns_quick_edit', $output, $this->args);
+apply_filters('term_meta_columns_quick_edit_'.$key, $output, $this->args);
+apply_filters('term_meta_columns_bulk_edit', $output, $this->args);
+apply_filters('term_meta_columns_bulk_edit_'.$key, $output, $this->args);
 */
 if (!class_exists('term_meta_columns')) :
 class term_meta_columns
@@ -46,10 +54,6 @@ class term_meta_columns
         if (!is_array($this->args['taxonomy'])) {
             $this->args['taxonomy'] = (array)$this->args['taxonomy'];
         }
-        if ($this->args['quick_edit']) {
-          $this->action = 'term_meta_columns_'.$this->args['meta']['key'];
-          add_action('wp_ajax_'.$this->action, array($this,'do_ajax'));
-        }
         add_action('admin_init', [$this, 'admin_init'], PHP_INT_MAX);
 //echo '<pre>'.var_export($this->args, true).'</pre>';
     } //construct
@@ -66,6 +70,11 @@ class term_meta_columns
         add_filter('manage_edit-'.$taxnow.'_columns', [$this, 'columnsname'], 1);
         add_action('manage_'.$taxnow.'_custom_column', [$this, 'columnsdata'], 10, 3);
         add_action('edited_terms', [$this, 'quick_edit_update']);
+        add_action( 'add_inline_term_data', function($term ) {
+            $key = $this->args['meta']['key'];
+            echo '<div class="meta-'.$this->args['meta']['key'].'">' . get_term_meta($term->term_id, $key, true) . '</div>';
+        });
+
 
         if($pagenow) add_action('load-'.$pagenow, [$this, 'load']);
     }
@@ -165,32 +174,26 @@ class term_meta_columns
  
         $key = $this->args['meta']['key'];
 //        if ($column !== $key || !in_array($taxonomy, $this->args['taxonomy'])) return;
+		$output = '<input id="'.$key.'" name="'.$key.'" type="text" value="" placeholder="'. __("&mdash; No Change &mdash;").'">';
+        $output = apply_filters('term_meta_columns_bulk_edit', $output, $this->args);
+        $output = apply_filters('term_meta_columns_bulk_edit_'.$key, $output, $this->args);
         ?>
-            <label class="inline-edit-<?php echo $key ?>">
+            <label class="inline-edit-meta-<?php echo $key ?>">
               <span class="title"><?php echo $this->args['meta']['label'] ?></span>
-        <?php
-			  $output = '<input id="'.$key.'" name="'.$key.'" type="text" value="" placeholder="'. __("&mdash; No Change &mdash;").'">';
-              $output = apply_filters('term_meta_columns_bulk_edit_'.$key, $output, $this->args);
-              $output = apply_filters('term_meta_columns_bulk_edit', $output, $this->args);
-              echo $output;
-        ?>
+              <?php echo $output; ?>
           </label>
   <?php
     }
     public function bulk_edit_update($term_ids)
     {
-        $key = $this->args['meta']['key'];
-        if (!isset($_REQUEST[$key])) {
-            return;
-        }
-        $val = $_REQUEST[$key];
-        if ($val === '') {
-            return;
-        }
-        //return;
         if (empty($term_ids)) {
             return;
         }
+        $key = $this->args['meta']['key'];
+        $val = apply_filters('term_meta_columns_update', $_REQUEST[$key], $_REQUEST, $this->args);
+        $val = apply_filters('term_meta_columns_update_'.$key, $val, $_REQUEST, $this->args);
+        if (!isset($val) || $val === '') return;
+
         foreach ($term_ids as $term_id) {
             update_term_meta($term_id, $key, $val);
         }
@@ -199,9 +202,12 @@ class term_meta_columns
     {
         $key = $this->args['meta']['key'];
         if (!in_array($taxonomy, $this->args['taxonomy'])) return;
-        ?><label class="inline-edit-<?php echo $key ?>">
+		$output = '<input id="'.$key.'" name="'.$key.'" type="text" value="">';
+        $output = apply_filters('term_meta_columns_quick_edit', $output, $this->args);
+        $output = apply_filters('term_meta_columns_quick_edit_'.$key, $output, $this->args);
+        ?><label class="inline-edit-meta-<?php echo $key ?>">
             <span class="title"><?php echo $this->args['meta']['label'] ?></span>
-			  <input id="<?php echo $key ?>" name="<?php echo $key ?>" type="text" value="" placeholder="<?php echo __("Loading&hellip;") ?>">
+			<?php echo $output ?>
         </label><?php
     }
     public function quick_edit_populate_fields()
@@ -212,7 +218,6 @@ class term_meta_columns
         }
         $key = $this->args['meta']['key']; ?>
 <script type="text/javascript">
-var ajaxurl = '<?php echo admin_url('admin-ajax.php') ?>';
 (function($) {
    var wp_inline_edit = inlineEditTax.edit;
    inlineEditTax.edit = function( id ) {
@@ -221,39 +226,25 @@ var ajaxurl = '<?php echo admin_url('admin-ajax.php') ?>';
       if ( typeof( id ) == 'object' ) term_id = parseInt( this.getId( id ) );
       if ( term_id > 0 ) {
           var edit_row = $( '#edit-' + term_id );
-		      var this_field = edit_row.find( '.inline-edit-<?php echo $key ?>' );
+          var this_field = edit_row.find( '.inline-edit-meta-<?php echo $key ?>' );
 		      if(this_field.length) {
-//            this_value = $( '#tag-' + term_id).find('.column-<?php echo $key ?>').text();
-//      			this_field.find('input').val(this_value); //instant value
-
-            var data = {
-            		term_id: term_id,
-            		taxonomy: '<?php echo $taxnow ?>',
-      			    action: '<?php echo $this->action ?>'
-          	};
-          	jQuery.post(ajaxurl, data, function(result) {
-              this_field.find('input').replaceWith(result); //updated value from ajax
-      		  }, 'html');
-
-		      }
-	     }
+//                this_value = $( '#inline_' + term_id + ' .meta-<?php echo $key ?>').text(); //not working after ajax quickedit
+                this_value = $( '#tag-' + term_id + ' .hidden .meta-<?php echo $key ?>').text();
+                this_input = this_field.find('input:radio,input:checkbox');
+                if(this_input.length) {
+                    this_input.filter('[value=' + this_value + ']').prop('checked', true);
+                } else {
+                    this_input = this_field.find('input,select,textarea');
+                    if(this_input.length) {
+                        this_input.val(this_value); //instant value
+                    }
+                }
+	          }
+      }
    };
 })(jQuery);
 </script>
 <?php
-    }
-    public function do_ajax()
-    {
-        $output = __('Failed');
-        if (($term_id = $_REQUEST['term_id'])) {
-            $key = $this->args['meta']['key'];
-            $value = get_term_meta($term_id, $key, true);
-            $output = '<input id="'.$key.'" name="'.$key.'" type="text" value="'.esc_attr($value).'">';
-            $output = apply_filters('term_meta_columns_quick_edit_'.$key, $output, $value, $term_id, $this->args);
-            $output = apply_filters('term_meta_columns_quick_edit', $output, $value, $term_id, $this->args);
-        }
-        echo $output;
-        exit;
     }
     public function quick_edit_update($term_id)
     {
@@ -265,10 +256,9 @@ var ajaxurl = '<?php echo admin_url('admin-ajax.php') ?>';
             return;
         }
         $key = $this->args['meta']['key'];
-        if (!isset($_REQUEST[$key])) {
-              return;
-        }
-        $val = $_REQUEST[$key];
+        $val = apply_filters('term_meta_columns_update', $_REQUEST[$key], $_REQUEST, $this->args);
+        $val = apply_filters('term_meta_columns_update_'.$key, $val, $_REQUEST, $this->args);
+        if (!isset($val)) return;
         update_term_meta($term_id, $key, $val);
       }
 }
