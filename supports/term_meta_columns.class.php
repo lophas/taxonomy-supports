@@ -27,7 +27,6 @@ apply_filters('term_meta_columns_bulk_edit_'.$key, $output, $this->args);
 if (!class_exists('term_meta_columns')) :
 class term_meta_columns
 {
-    private $action;
     private $args;
     public function __construct($args)
     {
@@ -231,7 +230,7 @@ class term_meta_columns
             if(this_input.length) {
                     this_input.filter('[value=' + this_value + ']').prop('checked', true);
             } else {
-                    this_input = this_field.find('input[name="<?php echo $key ?>"],select[name="<?php echo $key ?>"],textarea[name="<?php echo $key ?>"]');
+                    this_input = this_field.find('[name="<?php echo $key ?>"]');
                     if(this_input.length) {
                         this_input.val(this_value); //instant value
                     }
