@@ -15,7 +15,6 @@ new term_meta_columns(key|[
   'quick_edit' => false,
   'bulk_edit' => false,
 ]);
-apply_filters('term_meta_columns_data', $data, $this->args)
 apply_filters('term_meta_columns_data', $output, $this->args)
 apply_filters('term_meta_columns_data_'.$key, $output, $this->args)
 apply_filters('term_meta_columns_update', $_REQUEST[$key], $_REQUEST, $this->args);
