@@ -1,4 +1,5 @@
 <?php
+//3.8
 class term_author_support
 {
     private static $_instance;
@@ -114,13 +115,18 @@ class term_author_support
     public function author_meta_box($term = null)
     {
         $user_id = $term ? get_term_meta($term->term_id, self::META_KEY, true) : 0;
-        wp_dropdown_users(array(
-        'who' => 'authors',
+        $users_opt = array(
+//        'who' => 'authors',
         'name' => 'author',
         'selected' => $user_id ?  $user_id : get_current_user_id(),
         'include_selected' => true,
         'show' => 'display_name_with_login',
-    ));
+        );
+        if($term) {
+            $taxonomy_object = get_taxonomy($term->taxonomy);
+            $users_opt['capability' ] = array( $taxonomy_object->cap->manage_terms );
+        }
+        wp_dropdown_users($users_opt);
     }
 
     //edit-tags.php
@@ -137,21 +143,29 @@ class term_author_support
         return $output;
     }
     public function quick_edit($output, $args) {
-        $output = '<select name="'.self::META_KEY.'">';
-        $output .= '<option value="">'. __('None' ).'</option>';
-        foreach( get_users() as $user) {
-            $output .= '<option value="'.$user->ID.'" >'.$user->display_name.'</option>';
-        }
-        $output .= '</select>';
+        $taxonomy_object = get_taxonomy($_REQUEST['taxonomy']);
+        $users_opt = array(
+        'name' => self::META_KEY,
+        'show' => 'display_name_with_login',
+//        'show_option_none' => __('None' ),
+//        'option_none_value' => null,
+        'capability' => array( $taxonomy_object->cap->manage_terms ),
+        'echo'  => 0,
+        );
+        $output = wp_dropdown_users($users_opt);
         return $output;
     }
     public function bulk_edit($output, $args) {
-        $output = '<select name="'.self::META_KEY.'">';
-        $output .= '<option value="">'. __( "&mdash; No Change &mdash;" ).'</option>';
-        foreach( get_users() as $user) {
-            $output .= '<option value="'.$user->ID.'" '.(isset($selected) ? selected($user->ID, $selected, false) : '').'>'.$user->display_name.'</option>';
-        }
-        $output .= '</select>';
+        $taxonomy_object = get_taxonomy($_REQUEST['taxonomy']);
+        $users_opt = array(
+        'name' => self::META_KEY,
+        'show' => 'display_name_with_login',
+        'show_option_none' => __( "&mdash; No Change &mdash;" ), 
+        'option_none_value' => null,
+        'capability' => array( $taxonomy_object->cap->manage_terms ),
+        'echo'  => 0,
+        );
+        $output = wp_dropdown_users($users_opt);
         return $output;
     }
 } //term_author_support
