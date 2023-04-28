@@ -1,4 +1,5 @@
 <?php
+//2.0
 /*
     do_action( 'restrict_manage_terms', $screen->taxonomy, $which );
     do_action( 'manage_terms_extra_tablenav', $which );
@@ -119,11 +120,12 @@ class term_ui
 				});
 			</script><?php
 
-?><div id="inline-custom-fields">
+?><div id="inline-custom-fields" style="display:none">
 <?php do_action('quick_edit_custom_box_fields', $this->taxonomy) ?>
 </div>
 <script>
 jQuery('#inline-edit').find('.inline-edit-col').last().append(jQuery('#inline-custom-fields').html());
+jQuery('#inline-custom-fields').remove();
 </script>
 <?php
 
