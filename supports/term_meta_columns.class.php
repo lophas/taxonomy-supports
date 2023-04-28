@@ -2,7 +2,7 @@
 /*
     Plugin Name: Meta term columns class
     Description:
-    Version: 2.5
+    Version: 2.6
     Plugin URI:
     Author: Attila Seres
     Author URI:
@@ -131,11 +131,11 @@ class term_meta_columns
         if(!in_array('WP_Terms_List_Table', array_map(function($i){return $i['class'];}, debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10)))) return $clauses;
         $selector = $this->args['meta']['key'].'_selector';
         if ($_GET[ 'orderby'] === $this->args['meta']['key'] || !empty($_GET[$selector])) {
-            $key = str_replace('-','_',$this->args['meta']['key']);
+            $key = 'm'.str_replace('-','_',$this->args['meta']['key']);
             global $wpdb;
             $clauses['join'] .= ' LEFT JOIN '.$wpdb->termmeta.' AS '.$key.' ON t.term_id = '.$key.'.term_id AND '.$key.'.meta_key = "'.$this->args['meta']['key'].'"';
             if ($_GET[ 'orderby'] === $this->args['meta']['key']) {
-              $clauses['where'] .= ' AND ('.$key.'.meta_key = "'.$this->args['meta']['key'].'" OR '.$key.'.term_id IS NULL)';
+//              $clauses['where'] .= ' AND ('.$key.'.meta_key = "'.$this->args['meta']['key'].'" OR '.$key.'.term_id IS NULL)';
               $clauses['orderby'] = 'ORDER BY '.$key.'.'.($this->args['sortable'] === 'num' ? 'meta_value+0' : 'meta_value');
               $clauses['order'] = $_GET['order'] ? $_GET['order'] : 'ASC';
             }
