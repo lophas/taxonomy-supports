@@ -2,7 +2,7 @@
 /*
     Plugin Name: Meta term columns class
     Description:
-    Version: 2.6
+    Version: 2.7
     Plugin URI:
     Author: Attila Seres
     Author URI:
@@ -151,18 +151,19 @@ class term_meta_columns
             return;
         }
         global $wpdb;
-        $sql = 'SELECT DISTINCT m.meta_value FROM '.$wpdb->termmeta.' m
-				JOIN '.$wpdb->term_taxonomy.' tt ON tt.term_id = m.term_id
-				WHERE m.meta_key="'.$this->args['meta']['key'].'" AND tt.taxonomy IN("'.implode('","', $this->args['taxonomy']).'") AND meta_value <> ""
-        ORDER BY m.meta_value ASC';//.($this->args['sortable'] === 'num' ? 'meta_value_num' : 'meta_value');
-        $values = $wpdb->get_col($sql);
+        $sql = 'SELECT m.meta_value, COUNT(*) as count FROM '.$wpdb->termmeta.' as m
+				JOIN '.$wpdb->term_taxonomy.' as tt ON tt.term_id = m.term_id
+				WHERE m.meta_key="'.$this->args['meta']['key'].'" AND tt.taxonomy = "'.$GLOBALS['taxnow'].'" AND m.meta_value <> ""
+                GROUP BY m.meta_value
+                ORDER BY m.meta_value ASC';//.($this->args['sortable'] === 'num' ? 'meta_value_num' : 'meta_value');
+        $values = $wpdb->get_results($sql);
         $selector = $this->args['meta']['key'].'_selector';
         echo '<select name="'.$selector.'">';
         echo '<option value="">'.__('All').' '.$this->args['meta']['label'].'</option>';
         foreach ($values as $value) {
-            $meta_name = trim(strip_tags(apply_filters('term_meta_columns_data', $value, $value, $this->args)));
-            $meta_name = trim(strip_tags(apply_filters('term_meta_columns_data_'.$this->args['meta']['key'], $meta_name, $value, $this->args)));
-            echo '<option value="'.$value.'" '.selected($value, $_GET[$selector]).'>'.$meta_name.'</option>';
+            $output = trim(strip_tags(apply_filters('term_meta_columns_data', $value->meta_value, $value->meta_value, $this->args)));
+            $output = trim(strip_tags(apply_filters('term_meta_columns_data_'.$this->args['meta']['key'], $output, $value->meta_value, $this->args)));
+            echo '<option value="'.$value->meta_value.'" '.selected($value->meta_value, $_GET[$selector]).'>'.$output.' ('.$value->count.')</option>';
         }
         echo '</select>';
     }
