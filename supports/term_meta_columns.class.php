@@ -2,7 +2,7 @@
 /*
     Plugin Name: Meta term columns class
     Description:
-    Version: 2.9
+    Version: 2.10
     Plugin URI:
     Author: Attila Seres
     Author URI:
@@ -256,7 +256,8 @@ class term_meta_columns
         $val = apply_filters('term_meta_columns_update', $_REQUEST[$key], $_REQUEST, $this->args);
         $val = apply_filters('term_meta_columns_update_'.$key, $val, $_REQUEST, $this->args);
         if (!isset($val)) return;
-        update_term_meta($term_id, $key, $val);
+        if($val === '') delete_term_meta($term_id, $key);
+        else update_term_meta($term_id, $key, $val);
       }
 }
 endif;
