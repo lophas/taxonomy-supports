@@ -2,7 +2,7 @@
 /*
     Plugin Name: Meta term columns class
     Description:
-    Version: 2.8
+    Version: 2.9
     Plugin URI:
     Author: Attila Seres
     Author URI:
@@ -229,7 +229,7 @@ class term_meta_columns
             var this_value = $( '#inline_ui_' + term_id).find('.meta-<?php echo $key ?>').text();
             var this_input = this_field.find('input[name="<?php echo $key ?>"]:radio,input[name="<?php echo $key ?>"]:checkbox');
             if(this_input.length) {
-                    this_input.filter('[value=' + this_value + ']').prop('checked', true);
+                    this_input.filter('[value="' + this_value + '"]').prop('checked', true);
             } else {
                     this_input = this_field.find('[name="<?php echo $key ?>"]');
                     if(this_input.length) {
