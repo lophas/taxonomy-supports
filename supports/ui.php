@@ -1,5 +1,5 @@
 <?php
-//2.0
+//2.1
 /*
     do_action( 'restrict_manage_terms', $screen->taxonomy, $which );
     do_action( 'manage_terms_extra_tablenav', $which );
@@ -401,13 +401,11 @@ do_action("{$taxonomy}_term_new_form_tag"); ?>>
 	<input name="tag-name" id="tag-name" type="text" value="" size="40" aria-required="true" />
 	<p><?php _e('The name is how it appears on your site.'); ?></p>
 </div>
-<?php if (! global_terms_enabled()) : ?>
 <div class="form-field term-slug-wrap">
 	<label for="tag-slug"><?php _e('Slug'); ?></label>
 	<input name="slug" id="tag-slug" type="text" value="" size="40" />
 	<p><?php _e('The &#8220;slug&#8221; is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens.'); ?></p>
 </div>
-<?php endif; // global_terms_enabled()?>
 <?php if (is_taxonomy_hierarchical($taxonomy)) : ?>
 <div class="form-field term-parent-wrap">
 	<label for="parent"><?php echo esc_html($tax->labels->parent_item); ?></label>
